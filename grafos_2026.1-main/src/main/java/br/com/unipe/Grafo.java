@@ -412,14 +412,16 @@ public class Grafo {
                 exibeAdjacencias(), exibeAdjacentes());
     }
 
-    // INÍCIO DOS CÓDIGOS ADICIONADOS------------------------------------------
+ 
+    // INÍCIO DOS CÓDIGOS ADICIONADOS (Implementação do Projeto Final)
+ 
     
-    // [ADICIONADO] Método simples para recuperar todos os nós da rede e ser usado na Missão 5
+    //este método recupera a lista de vértices. Ela será usada na missão cinco.
     public List<Vertice> recuperarListaDeVertices() {
         return this.vertices;
     }
 
-    // [ADICIONADO] Classe auxiliar para encapsular a resposta de um trajeto junto com seu custo
+    //Esta classe interna junta duas informações. Ela devolve o caminho e o custo total de uma vez só.
     public static class DadosRota {
         public List<String> sequenciaNos;
         public int custoTotal;
@@ -430,27 +432,28 @@ public class Grafo {
         }
     }
 
-    // [ADICIONADO] Algoritmo de Dijkstra 
+    //Aqui começa o algoritmo de menor caminho para grafos ponderados.
     public DadosRota calcularDijkstra(String pOrigem, String pDestino) {
         Vertice noInicial = encontraVertice(pOrigem).orElse(null);
         Vertice noFinal = encontraVertice(pDestino).orElse(null);
 
-        // Se os perfis não existirem na rede, retorna o que foi pedido na regra (-1 e lista vazia)
+        //As primeiras linhas verificam se a origem ou o destino não existem. Se isso acontecer o código retorna custo menos um e um caminho vazio.
         if (noInicial == null || noFinal == null) {
             return new DadosRota(new ArrayList<>(), -1); 
         }
 
+        //O mapa de custos guarda a menor distância até cada nó. O mapa de nós anteriores ajuda a reconstruir o trajeto no final.
         Map<Vertice, Integer> mapaCustos = new HashMap<>();
         Map<Vertice, Vertice> nosAnteriores = new HashMap<>();
         
-        // Fila de prioridade para garantir que eu sempre explore o caminho mais barato primeiro
+        //Esta linha cria uma fila de prioridade. Ela sempre entrega o vértice mais barato do momento.
         PriorityQueue<Vertice> filaPrioridade = new PriorityQueue<>((v1, v2) -> {
             int custo1 = mapaCustos.getOrDefault(v1, Integer.MAX_VALUE);
             int custo2 = mapaCustos.getOrDefault(v2, Integer.MAX_VALUE);
             return Integer.compare(custo1, custo2);
         });
 
-        // Inicia todo mundo com custo infinito
+        //Esse laço define a distância inicial de todos os vértices como infinita. Apenas a origem começa com zero.
         for (Vertice v : vertices) {
             mapaCustos.put(v, Integer.MAX_VALUE);
         }
@@ -458,22 +461,21 @@ public class Grafo {
         mapaCustos.put(noInicial, 0);
         filaPrioridade.add(noInicial);
 
+        //O laço principal retira o nó da fila. Se o nó for o destino, o código para e economiza processamento.
         while (!filaPrioridade.isEmpty()) {
             Vertice noAtual = filaPrioridade.poll();
 
-            // Parada antecipada: achou o destino ou os nós que sobraram estão isolados
             if (noAtual.equals(noFinal) || mapaCustos.get(noAtual) == Integer.MAX_VALUE) {
                 break;
             }
 
-            // Explorando as conexões do nó atual
+            //Depois um laço percorre os vizinhos. Um "for" menor descobre a aresta mais leve entre eles.
             for (Vertice vizinho : noAtual.getAdjacencias()) {
                 List<Aresta> conexoes = obtemArestasParaVizinho(noAtual, vizinho);
                 if (conexoes.isEmpty()) {
                     continue;
                 }
 
-                // Descobrindo a aresta mais leve usando um for simples
                 Aresta conexaoMaisBarata = conexoes.get(0);
                 for (int i = 1; i < conexoes.size(); i++) {
                     Aresta a = conexoes.get(i);
@@ -487,24 +489,22 @@ public class Grafo {
                 int pesoConsiderado = conexaoMaisBarata.getPeso() != null ? conexaoMaisBarata.getPeso() : 1;
                 int custoAcumulado = mapaCustos.get(noAtual) + pesoConsiderado;
 
-                // [LÓGICA DO DIJKSTRA] Relaxamento: atualiza se achou caminho mais barato
+                //Estas linhas fazem o relaxamento. Se o caminho novo for mais barato, o mapa é atualizado. O nó pai é anotado e a fila é reorganizada.
                 if (custoAcumulado < mapaCustos.get(vizinho)) {
                     mapaCustos.put(vizinho, custoAcumulado);
                     nosAnteriores.put(vizinho, noAtual);
                     
-                    // Reorganiza a fila com o novo custo provisório
                     filaPrioridade.remove(vizinho); 
                     filaPrioridade.add(vizinho);
                 }
             }
         }
 
-        // Se o destino ficou inalcançável (pertence a outro grupo isolado)
         if (mapaCustos.get(noFinal) == Integer.MAX_VALUE) {
             return new DadosRota(new ArrayList<>(), -1);
         }
 
-        // Reconstrói o caminho de volta montando a lista final que será devolvida
+        //No final este laço monta o caminho de trás pra frente e devolve o resultado.
         List<String> trajetoFinal = new ArrayList<>();
         Vertice rastreador = noFinal;
         
