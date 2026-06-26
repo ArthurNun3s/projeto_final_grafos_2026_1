@@ -412,14 +412,14 @@ public class Grafo {
                 exibeAdjacencias(), exibeAdjacentes());
     }
 
-    // --- CODIGOS CUSTOMIZADOS PARA O PROJETO FINAL ---
+    // INÍCIO DOS CÓDIGOS ADICIONADOS------------------------------------------
     
-    // Método para recuperar todos os nós (necessário na Missão 5)
+    // [ADICIONADO] Método simples para recuperar todos os nós da rede e ser usado na Missão 5
     public List<Vertice> recuperarListaDeVertices() {
         return this.vertices;
     }
 
-    // Classe simples para encapsular a resposta de um trajeto com seu custo
+    // [ADICIONADO] Classe auxiliar para encapsular a resposta de um trajeto junto com seu custo
     public static class DadosRota {
         public List<String> sequenciaNos;
         public int custoTotal;
@@ -430,12 +430,12 @@ public class Grafo {
         }
     }
 
-    // Algoritmo de Dijkstra para menor custo
+    // [ADICIONADO] Algoritmo de Dijkstra 
     public DadosRota calcularDijkstra(String pOrigem, String pDestino) {
         Vertice noInicial = encontraVertice(pOrigem).orElse(null);
         Vertice noFinal = encontraVertice(pDestino).orElse(null);
 
-        // Se os perfis não existirem na rede, retorna o que foi pedido na regra
+        // Se os perfis não existirem na rede, retorna o que foi pedido na regra (-1 e lista vazia)
         if (noInicial == null || noFinal == null) {
             return new DadosRota(new ArrayList<>(), -1); 
         }
@@ -443,7 +443,7 @@ public class Grafo {
         Map<Vertice, Integer> mapaCustos = new HashMap<>();
         Map<Vertice, Vertice> nosAnteriores = new HashMap<>();
         
-        // Usamos uma fila de prioridade comum para organizar pelo custo
+        // Fila de prioridade para garantir que eu sempre explore o caminho mais barato primeiro
         PriorityQueue<Vertice> filaPrioridade = new PriorityQueue<>((v1, v2) -> {
             int custo1 = mapaCustos.getOrDefault(v1, Integer.MAX_VALUE);
             int custo2 = mapaCustos.getOrDefault(v2, Integer.MAX_VALUE);
@@ -461,18 +461,19 @@ public class Grafo {
         while (!filaPrioridade.isEmpty()) {
             Vertice noAtual = filaPrioridade.poll();
 
-            // Parada antecipada: achou o destino ou sobrou só nós isolados
+            // Parada antecipada: achou o destino ou os nós que sobraram estão isolados
             if (noAtual.equals(noFinal) || mapaCustos.get(noAtual) == Integer.MAX_VALUE) {
                 break;
             }
 
+            // Explorando as conexões do nó atual
             for (Vertice vizinho : noAtual.getAdjacencias()) {
                 List<Aresta> conexoes = obtemArestasParaVizinho(noAtual, vizinho);
                 if (conexoes.isEmpty()) {
                     continue;
                 }
 
-                // Descobrindo a aresta mais leve usando um for simples em vez de stream
+                // Descobrindo a aresta mais leve usando um for simples
                 Aresta conexaoMaisBarata = conexoes.get(0);
                 for (int i = 1; i < conexoes.size(); i++) {
                     Aresta a = conexoes.get(i);
@@ -486,23 +487,24 @@ public class Grafo {
                 int pesoConsiderado = conexaoMaisBarata.getPeso() != null ? conexaoMaisBarata.getPeso() : 1;
                 int custoAcumulado = mapaCustos.get(noAtual) + pesoConsiderado;
 
+                // [LÓGICA DO DIJKSTRA] Relaxamento: atualiza se achou caminho mais barato
                 if (custoAcumulado < mapaCustos.get(vizinho)) {
                     mapaCustos.put(vizinho, custoAcumulado);
                     nosAnteriores.put(vizinho, noAtual);
                     
-                    // Reorganiza a fila com o novo custo
+                    // Reorganiza a fila com o novo custo provisório
                     filaPrioridade.remove(vizinho); 
                     filaPrioridade.add(vizinho);
                 }
             }
         }
 
-        // Se inalcançável (está em outro grupo isolado)
+        // Se o destino ficou inalcançável (pertence a outro grupo isolado)
         if (mapaCustos.get(noFinal) == Integer.MAX_VALUE) {
             return new DadosRota(new ArrayList<>(), -1);
         }
 
-        // Faz o caminho de volta montando a lista final
+        // Reconstrói o caminho de volta montando a lista final que será devolvida
         List<String> trajetoFinal = new ArrayList<>();
         Vertice rastreador = noFinal;
         

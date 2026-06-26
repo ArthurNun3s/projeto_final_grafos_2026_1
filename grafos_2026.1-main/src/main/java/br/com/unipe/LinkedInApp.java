@@ -1,3 +1,5 @@
+// ARQUIVO NOVO: Classe criada para construir o Cenário de Testes Principal
+
 package br.com.unipe;
 
 import java.util.List;
@@ -8,13 +10,13 @@ public class LinkedInApp {
     public static void main(String[] args) {
         System.out.println("=== INICIANDO O LINKEDIN ANALYZER ===\n");
 
-        // 1. Instanciando o Grafo (Não-dirigido e Ponderado)
+        // [IMPLEMENTAÇÃO] Instanciando a rede como Não-dirigido e Ponderado (false, true)
         Grafo rede = new Grafo(false, true);
 
-        // 2. Adicionando os usuários sugeridos no documento do projeto
+        // [IMPLEMENTAÇÃO] Adicionando os usuários exatamente como exigido no PDF
         rede.adicionaVertices("Ana", "Bruno", "Carlos", "Daniela", "Eduardo", "Fernanda", "Gabriel", "Hugo", "Igor", "Juliana");
 
-        // 3. Cadastrando as conexões e os pesos (afinidades)
+        // [IMPLEMENTAÇÃO] Cadastrando as conexões e os níveis de afinidade (pesos)
         rede.addAresta("Ana", "Bruno", 1);
         rede.addAresta("Ana", "Carlos", 2);
         rede.addAresta("Ana", "Daniela", 8);
@@ -23,16 +25,16 @@ public class LinkedInApp {
         rede.addAresta("Daniela", "Fernanda", 5);
         rede.addAresta("Eduardo", "Fernanda", 1);
 
-        // Grupo isolado 1
+        // Grupo isolado 1 (apenas Gabriel e Hugo conversam entre si)
         rede.addAresta("Gabriel", "Hugo", 1);
 
-        // Grupo isolado 2
+        // Grupo isolado 2 (apenas Igor e Juliana conversam entre si)
         rede.addAresta("Igor", "Juliana", 1);
 
-        // 4. Instanciando o motor de análises (Missão 1)
+        // Instanciando o meu motor de análises (Missão 1)
         LinkedInAnalyzer analisador = new LinkedInAnalyzer(rede);
 
-        // --- TESTANDO A MISSÃO 2: Sugestão de Conexões ---
+        // --- EXECUTANDO A MISSÃO 2 ---
         System.out.println(">>> MISSÃO 2: Sugestões de conexões para Ana");
         Map<String, Integer> sugestoesAna = analisador.sugerirConexoes("Ana");
         if (sugestoesAna.isEmpty()) {
@@ -44,7 +46,7 @@ public class LinkedInApp {
         }
         System.out.println();
 
-        // --- TESTANDO A MISSÃO 3: Grau de Separação ---
+        // --- EXECUTANDO A MISSÃO 3 ---
         System.out.println(">>> MISSÃO 3: Grau de Separação (Passos)");
         int passos = analisador.grauDeSeparacao("Ana", "Fernanda");
         System.out.println("Distância entre Ana e Fernanda: " + passos + " passos.");
@@ -52,15 +54,15 @@ public class LinkedInApp {
         System.out.println("Distância entre Ana e Igor (Isolados): " + passosIsolados + " (Retornou -1 como pedido).");
         System.out.println();
 
-        // --- TESTANDO A MISSÃO 4: Rota de Maior Afinidade (Dijkstra) ---
-        System.out.println(">>> MISSÃO 4: Rota de Maior Afinidade (Menor Custo)");
+        // --- EXECUTANDO A MISSÃO 4 ---
+        System.out.println(">>> MISSÃO 4: Rota de Maior Afinidade (Menor Custo via Dijkstra)");
         Grafo.DadosRota melhorRota = analisador.rotaDeMaiorAfinidade("Ana", "Fernanda");
         System.out.println("De Ana para Fernanda:");
         System.out.println("Custo (Soma dos pesos): " + melhorRota.custoTotal);
         System.out.println("Caminho: " + String.join(" -> ", melhorRota.sequenciaNos));
         System.out.println();
 
-        // --- TESTANDO A MISSÃO 5: Mapear Grupos Isolados ---
+        // --- EXECUTANDO A MISSÃO 5 ---
         System.out.println(">>> MISSÃO 5: Mapeamento de Grupos Isolados na Rede");
         List<List<String>> grupos = analisador.mapearGruposIsolados();
         int contador = 1;
